@@ -1,14 +1,25 @@
 // Images
 import { useCallback, useEffect, useRef, useState } from "react";
-import GenderApi from "../../api/gender";
 import ActionCell from "../../components/ActionCell";
 import toast from "react-hot-toast";
 import { useConfirm } from "material-ui-confirm";
 import _debounce from "lodash/debounce";
+import _pick from "lodash/pick";
+import _keys from "lodash/keys";
 import { useSearchParams } from "react-router-dom";
 import axios from "../../api";
+import RelationshipTypeApi from "../../api/relationship-type";
+import SoftBadge from "../../components/SoftBadge";
 
-const useGenders = () => {
+const initForm = {
+  id: null,
+  name: "",
+  isDefault: false,
+  icon: "",
+  description: "",
+};
+
+const useRelationshipTypes = () => {
   const columns = [
     { name: "code", align: "center" },
     { name: "name", align: "left" },
@@ -16,7 +27,8 @@ const useGenders = () => {
       name: "number of user",
       align: "center",
     },
-    { name: "describe", align: "left" },
+    { name: "description", align: "left" },
+    { name: "status", align: "center" },
     { name: "action", align: "center" },
   ];
 
@@ -24,7 +36,7 @@ const useGenders = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const searchDebounceRef = useRef("");
-  const cancelTokenSearch = useRef("");
+  const cancelTokenSearch = useRef();
 
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
@@ -39,53 +51,56 @@ const useGenders = () => {
     currentPage: 1,
     totalPage: 1,
   });
-  const [formData, setFormData] = useState({
-    id: null,
-    name: "",
-    icon: "",
-    description: "",
-  });
-  const [genderEdit, setGenderEdit] = useState(null);
+  const [formData, setFormData] = useState(initForm);
+  const [relationshipTypeEdit, setRelationshipTypeEdit] = useState(null);
 
-  const getGenders = useCallback(async (filterQuery = {}) => {
-    if (cancelTokenSearch.current) {
-      cancelTokenSearch.current.cancel("Operation canceled due to new request");
-    }
-
-    cancelTokenSearch.current = axios.CancelToken.source();
-
-    const { data: res } = await GenderApi.GetAll(filterQuery, cancelTokenSearch.current.token);
-
-    const data = res.data.genders.map((item) => ({
+  const convertToRow = useCallback((item) => {
+    return {
       ...item,
       "number of user": item?.userGenders,
+      status: item.isDefault && (
+        <SoftBadge variant="gradient" badgeContent="Default" color="success" size="xs" container />
+      ),
       action: <ActionCell item={item} onEdit={handleEdit} onDelete={handleDelete} />,
-    }));
-
-    setRows(data);
-    setPagination(res.data.pagination);
+    };
   }, []);
+
+  const getRelationshipTypes = useCallback(
+    async (filterQuery = {}) => {
+      if (cancelTokenSearch.current) {
+        cancelTokenSearch.current.cancel("Operation canceled due to new request");
+      }
+
+      cancelTokenSearch.current = axios.CancelToken.source();
+
+      const { data: res } = await RelationshipTypeApi.GetAll(
+        filterQuery,
+        cancelTokenSearch.current.token,
+      );
+
+      const data = res.data.relationshipTypes.map((item) => convertToRow(item));
+
+      setRows(data);
+      setPagination(res.data.pagination);
+    },
+    [convertToRow],
+  );
 
   const handleCloseModal = () => {
     setOpen(false);
     setModalType(null);
-    setFormData({
-      id: null,
-      name: "",
-      icon: "",
-      description: "",
-    });
+    setFormData(initForm);
   };
 
   const resetFilter = async () => {
     setFilter({ search: "", page: 1 });
     setSearchParams({});
-    await getGenders();
+    await getRelationshipTypes();
   };
 
   const handleDelete = (item) => {
     confirm({ description: "This action cannot be undone" }).then(async () => {
-      await toast.promise(GenderApi.Delete(item.id), {
+      await toast.promise(RelationshipTypeApi.Delete(item.id), {
         loading: "Deleting...",
         success: () => {
           setRows((prevState) => prevState.filter((row) => row.id !== item.id));
@@ -103,9 +118,9 @@ const useGenders = () => {
 
   const handleEdit = (item) => {
     setModalType("edit");
-    setGenderEdit(item);
+    setRelationshipTypeEdit(item);
     setOpen(true);
-    setFormData({ id: item.id, name: item.name, description: item.description, icon: item.icon });
+    setFormData(_pick(item, _keys(formData)));
   };
 
   const handleCreate = () => {
@@ -114,40 +129,45 @@ const useGenders = () => {
   };
 
   const handleChangeForm = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.name === "isDefault") {
+      setFormData((prevState) => ({
+        ...prevState,
+        [e.target.name]: e.target.checked,
+      }));
+    } else {
+      setFormData({
+        ...formData,
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     setLoading(true);
     e.preventDefault();
     const api =
-      modalType === "edit" ? GenderApi.Update(genderEdit.id, formData) : GenderApi.Create(formData);
+      modalType === "edit"
+        ? RelationshipTypeApi.Update(relationshipTypeEdit.id, formData)
+        : RelationshipTypeApi.Create(formData);
 
     await toast.promise(api, {
       loading: modalType === "edit" ? "Updating..." : "Creating...",
       success: ({ data: res }) => {
-        const newItem = {
-          ...res.data,
-          "number of user": genderEdit ? res.data.userGenders : 0,
-          action: <ActionCell item={res.data} onEdit={handleEdit} onDelete={handleDelete} />,
-        };
+        const newItem = convertToRow(res.data);
 
-        if (genderEdit) {
+        if (relationshipTypeEdit) {
           setRows((prevState) =>
             prevState.map((item) => (item.id === res.data.id ? newItem : item)),
           );
-          setGenderEdit(null);
+          setRelationshipTypeEdit(null);
         } else {
           setRows((prevState) => [...prevState, newItem]);
         }
         resetFilter();
         setLoading(false);
-        setFormData({ id: null, name: "", icon: "", description: "" });
+        setFormData(initForm);
         handleCloseModal();
-        return genderEdit ? "Update success" : "Create success";
+        return relationshipTypeEdit ? "Update success" : "Create success";
       },
       error: (error) => {
         setLoading(false);
@@ -162,7 +182,7 @@ const useGenders = () => {
     setFilter(newFilter);
     searchParams.set("page", value);
     setSearchParams(searchParams);
-    await getGenders(newFilter);
+    await getRelationshipTypes(newFilter);
   };
 
   const handleChangeSearch = (e) => {
@@ -176,21 +196,21 @@ const useGenders = () => {
     searchDebounceRef.current = _debounce(async () => {
       e.target.value ? searchParams.set("search", e.target.value) : searchParams.delete("search");
       setSearchParams(searchParams);
-      await getGenders(newFilter);
+      await getRelationshipTypes(newFilter);
     }, 500);
     searchDebounceRef.current();
   };
 
   useEffect(() => {
     (async () => {
-      await getGenders();
+      await getRelationshipTypes();
     })();
-  }, [getGenders]);
+  }, [getRelationshipTypes]);
 
   return {
     open,
     rows,
-    genderEdit,
+    genderEdit: relationshipTypeEdit,
     modalType,
     columns,
     setOpen,
@@ -207,4 +227,4 @@ const useGenders = () => {
   };
 };
 
-export default useGenders;
+export default useRelationshipTypes;

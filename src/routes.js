@@ -57,7 +57,9 @@ import CreditCard from "examples/Icons/CreditCard";
 import Cube from "examples/Icons/Cube";
 import Users from "./layouts/users";
 import { IoMdTransgender } from "react-icons/io";
+import { GiRelationshipBounds } from "react-icons/gi";
 import Genders from "./layouts/genders";
+import RelationshipTypes from "./layouts/relationship-types";
 
 const routes = [
   {
@@ -87,6 +89,16 @@ const routes = [
     route: "/genders",
     icon: <IoMdTransgender size={15} />,
     component: <Genders />,
+    noCollapse: true,
+    protected: true,
+  },
+  {
+    type: "collapse",
+    name: "Relationship type",
+    key: "relationship-type",
+    route: "/relationship-type",
+    icon: <GiRelationshipBounds size={15} />,
+    component: <RelationshipTypes />,
     noCollapse: true,
     protected: true,
   },
