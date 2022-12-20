@@ -6,6 +6,7 @@ import { AuthProvider } from "./auth-context/auth.context";
 
 import { SoftUIControllerProvider } from "context";
 import { Toaster } from "react-hot-toast";
+import { ConfirmProvider } from "material-ui-confirm";
 
 let user = localStorage.getItem("user");
 user = JSON.parse(user);
@@ -13,10 +14,12 @@ user = JSON.parse(user);
 ReactDOM.render(
   <BrowserRouter>
     <SoftUIControllerProvider>
-      <AuthProvider userData={user}>
-        <Toaster position={"top-right"} />
-        <App />
-      </AuthProvider>
+      <ConfirmProvider>
+        <AuthProvider userData={user}>
+          <Toaster position={"top-right"} />
+          <App />
+        </AuthProvider>
+      </ConfirmProvider>
     </SoftUIControllerProvider>
   </BrowserRouter>,
   document.getElementById("root"),

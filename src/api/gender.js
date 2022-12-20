@@ -9,6 +9,10 @@ class GenderApi {
   static Create = (data) => {
     return axios.post(`${API_SERVER}/genders/create`, data);
   };
+
+  static Delete = (id) => {
+    return axios.delete(`${API_SERVER}/genders/${id}`);
+  };
 }
 
 export default GenderApi;

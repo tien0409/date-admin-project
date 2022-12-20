@@ -4,9 +4,11 @@ import MenuItem from "@mui/material/MenuItem";
 import SoftTypography from "../SoftTypography";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import IconButton from "@mui/material/IconButton";
+import PropTypes from "prop-types";
+import SoftButton from "../SoftButton";
 
 const ActionCell = (props) => {
-  const { onView, onEdit, onDelete } = props;
+  const { item, onView, onEdit, onDelete } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -37,7 +39,7 @@ const ActionCell = (props) => {
           "aria-labelledby": "action__cell-btn",
         }}
       >
-        <MenuItem onClick={onView}>
+        <MenuItem onClick={() => onView(item)}>
           <SoftTypography
             component="a"
             href="#"
@@ -48,7 +50,7 @@ const ActionCell = (props) => {
             View
           </SoftTypography>
         </MenuItem>
-        <MenuItem onClick={onEdit}>
+        <MenuItem onClick={() => onEdit(item)}>
           <SoftTypography
             component="a"
             href="#"
@@ -59,7 +61,7 @@ const ActionCell = (props) => {
             Edit
           </SoftTypography>
         </MenuItem>
-        <MenuItem onClick={onDelete}>
+        <MenuItem onClick={() => onDelete(item)}>
           <SoftTypography
             component="a"
             href="#"
@@ -76,3 +78,10 @@ const ActionCell = (props) => {
 };
 
 export default ActionCell;
+
+ActionCell.propTypes = {
+  item: PropTypes.object,
+  onView: PropTypes.func,
+  onEdit: PropTypes.func,
+  onDelete: PropTypes.func,
+};
