@@ -11,7 +11,7 @@ import useGenders from "./GendersHook";
 import SoftTypography from "../../components/SoftTypography";
 import SoftButton from "../../components/SoftButton";
 import Icon from "@mui/material/Icon";
-import { Box, Dialog, DialogTitle, Modal, TextField } from "@mui/material";
+import { Dialog } from "@mui/material";
 import SoftInput from "../../components/SoftInput";
 
 // Data
@@ -21,10 +21,14 @@ function Genders() {
     rows,
     columns,
     formData,
+    genderEdit,
+    modalType,
     open,
     setOpen,
     loading,
+    handleCloseModal,
     handleChangeForm,
+    handleCreate,
     handleSubmit,
   } = useGenders();
 
@@ -34,7 +38,7 @@ function Genders() {
       <SoftBox py={3}>
         <SoftBox mb={3}>
           <SoftBox display="flex" justifyContent="flex-end">
-            <SoftButton variant="gradient" color="dark" onClick={() => setOpen(true)}>
+            <SoftButton variant="gradient" color="dark" onClick={handleCreate}>
               <Icon sx={{ fontWeight: "bold" }}>add</Icon>
               &nbsp;add new Gender
             </SoftButton>
@@ -57,7 +61,7 @@ function Genders() {
         </SoftBox>
       </SoftBox>
 
-      <Dialog open={open} onClose={() => setOpen(false)}>
+      <Dialog open={open} onClose={handleCloseModal}>
         <SoftBox
           component={"form"}
           role={"form"}
@@ -116,7 +120,7 @@ function Genders() {
               disabled={loading}
               onClick={handleSubmit}
             >
-              Create
+              {modalType === "edit" ? "Update" : "Create"}
             </SoftButton>
           </SoftBox>
         </SoftBox>

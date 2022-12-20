@@ -10,6 +10,10 @@ class GenderApi {
     return axios.post(`${API_SERVER}/genders/create`, data);
   };
 
+  static Update = (id, data) => {
+    return axios.put(`${API_SERVER}/genders/${id}`, data);
+  };
+
   static Delete = (id) => {
     return axios.delete(`${API_SERVER}/genders/${id}`);
   };
