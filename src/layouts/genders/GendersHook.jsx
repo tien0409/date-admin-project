@@ -3,29 +3,12 @@ import SoftBox from "components/SoftBox";
 import SoftAvatar from "components/SoftAvatar";
 
 // Images
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import GenderApi from "../../api/gender";
 import ActionCell from "../../components/ActionCell";
+import toast from "react-hot-toast";
 
 const useGenders = () => {
-  const Gender = ({ image, name, email }) => {
-    return (
-      <SoftBox display="flex" alignItems="center" px={1} py={0.5}>
-        <SoftBox mr={2}>
-          <SoftAvatar src={image} alt={name} size="sm" variant="rounded" />
-        </SoftBox>
-        <SoftBox display="flex" flexDirection="column">
-          <SoftTypography variant="button" fontWeight="medium">
-            {name}
-          </SoftTypography>
-          <SoftTypography variant="caption" color="secondary">
-            {email}
-          </SoftTypography>
-        </SoftBox>
-      </SoftBox>
-    );
-  };
-
   const columns = [
     { name: "code", align: "center" },
     { name: "name", align: "left" },
@@ -35,25 +18,65 @@ const useGenders = () => {
   ];
 
   const [rows, setRows] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    icon: "",
+    description: "",
+  });
 
-  useEffect(() => {
-    const getGenders = async () => {
-      const { data: res } = await GenderApi.GetAll();
+  const getGenders = useCallback(async () => {
+    const { data: res } = await GenderApi.GetAll();
 
-      const data = res.data.map((item) => ({
-        ...item,
-        "number of user": item?.userGenders,
-        action: <ActionCell />,
-      }));
+    const data = res.data.map((item) => ({
+      ...item,
+      "number of user": item?.userGenders,
+      action: <ActionCell />,
+    }));
 
-      setRows(data);
-    };
-    getGenders();
+    setRows(data);
   }, []);
 
+  const handleChangeForm = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    try {
+      setLoading(true);
+      e.preventDefault();
+      const { data: res } = await GenderApi.Create(formData);
+      toast.success("Create success");
+      setOpen(false);
+      getGenders();
+    } catch (error) {
+      if (Array.isArray(error?.response?.data?.message))
+        error?.response?.data?.message.forEach((message) => {
+          toast.error(message);
+        });
+      else toast.error(error?.response?.data?.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getGenders();
+  }, [getGenders]);
+
   return {
+    open,
     rows,
     columns,
+    setOpen,
+    formData,
+    loading,
+    handleChangeForm,
+    handleSubmit,
   };
 };
 
