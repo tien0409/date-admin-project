@@ -2,8 +2,8 @@ import axios from "./index";
 import { API_SERVER } from "config/constant";
 
 class GenderApi {
-  static GetAll = () => {
-    return axios.get(`${API_SERVER}/genders`);
+  static GetAll = (params = {}, cancelToken) => {
+    return axios.get(`${API_SERVER}/genders`, { params, cancelToken });
   };
 
   static Create = (data) => {

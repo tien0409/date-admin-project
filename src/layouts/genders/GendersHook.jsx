@@ -1,9 +1,12 @@
 // Images
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import GenderApi from "../../api/gender";
 import ActionCell from "../../components/ActionCell";
 import toast from "react-hot-toast";
 import { useConfirm } from "material-ui-confirm";
+import _debounce from "lodash/debounce";
+import { useSearchParams } from "react-router-dom";
+import axios from "../../api";
 
 const useGenders = () => {
   const columns = [
@@ -18,11 +21,24 @@ const useGenders = () => {
   ];
 
   const confirm = useConfirm();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const searchDebounceRef = useRef("");
+  const cancelTokenSearch = useRef("");
 
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [modalType, setModalType] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState({
+    search: "",
+    page: 1,
+  });
+  const [pagination, setPagination] = useState({
+    perPage: 12,
+    currentPage: 1,
+    totalPage: 1,
+  });
   const [formData, setFormData] = useState({
     id: null,
     name: "",
@@ -31,17 +47,43 @@ const useGenders = () => {
   });
   const [genderEdit, setGenderEdit] = useState(null);
 
+  const getGenders = useCallback(async (filterQuery = {}) => {
+    if (cancelTokenSearch.current) {
+      cancelTokenSearch.current.cancel("Operation canceled due to new request");
+    }
+
+    cancelTokenSearch.current = axios.CancelToken.source();
+
+    const { data: res } = await GenderApi.GetAll(filterQuery, cancelTokenSearch.current.token);
+
+    const data = res.data.genders.map((item) => ({
+      ...item,
+      "number of user": item?.userGenders,
+      action: <ActionCell item={item} onEdit={handleEdit} onDelete={handleDelete} />,
+    }));
+
+    setRows(data);
+    setPagination(res.data.pagination);
+  }, []);
+
   const handleCloseModal = () => {
     setOpen(false);
     setModalType(null);
   };
 
+  const resetFilter = async () => {
+    setFilter({ search: "", page: 1 });
+    setSearchParams({});
+    await getGenders();
+  };
+
   const handleDelete = (item) => {
-    confirm({ description: "This action cannot be undone" }).then(() => {
-      toast.promise(GenderApi.Delete(item.id), {
+    confirm({ description: "This action cannot be undone" }).then(async () => {
+      await toast.promise(GenderApi.Delete(item.id), {
         loading: "Deleting...",
         success: () => {
           setRows((prevState) => prevState.filter((row) => row.id !== item.id));
+          resetFilter();
           return "Delete success";
         },
         error: (error) => {
@@ -65,18 +107,6 @@ const useGenders = () => {
     setOpen(true);
   };
 
-  const getGenders = useCallback(async () => {
-    const { data: res } = await GenderApi.GetAll();
-
-    const data = res.data.map((item) => ({
-      ...item,
-      "number of user": item?.userGenders,
-      action: <ActionCell item={item} onEdit={handleEdit} onDelete={handleDelete} />,
-    }));
-
-    setRows(data);
-  }, []);
-
   const handleChangeForm = (e) => {
     setFormData({
       ...formData,
@@ -90,7 +120,7 @@ const useGenders = () => {
     const api =
       modalType === "edit" ? GenderApi.Update(genderEdit.id, formData) : GenderApi.Create(formData);
 
-    toast.promise(api, {
+    await toast.promise(api, {
       loading: modalType === "edit" ? "Updating..." : "Creating...",
       success: ({ data: res }) => {
         const newItem = {
@@ -107,6 +137,7 @@ const useGenders = () => {
         } else {
           setRows((prevState) => [...prevState, newItem]);
         }
+        resetFilter();
         setLoading(false);
         setFormData({ id: null, name: "", icon: "", description: "" });
         handleCloseModal();
@@ -120,8 +151,34 @@ const useGenders = () => {
     });
   };
 
+  const handleChangePage = async (e, value) => {
+    const newFilter = { ...filter, page: value };
+    setFilter(newFilter);
+    searchParams.set("page", value);
+    setSearchParams(searchParams);
+    await getGenders(newFilter);
+  };
+
+  const handleChangeSearch = (e) => {
+    const newFilter = { ...filter, search: e.target.value };
+    setFilter(newFilter);
+
+    if (searchDebounceRef.current) {
+      searchDebounceRef.current.cancel();
+    }
+
+    searchDebounceRef.current = _debounce(async () => {
+      e.target.value ? searchParams.set("search", e.target.value) : searchParams.delete("search");
+      setSearchParams(searchParams);
+      await getGenders(newFilter);
+    }, 500);
+    searchDebounceRef.current();
+  };
+
   useEffect(() => {
-    getGenders();
+    (async () => {
+      await getGenders();
+    })();
   }, [getGenders]);
 
   return {
@@ -133,10 +190,14 @@ const useGenders = () => {
     setOpen,
     formData,
     loading,
+    filter,
+    pagination,
     handleCloseModal,
     handleChangeForm,
     handleSubmit,
     handleCreate,
+    handleChangeSearch,
+    handleChangePage,
   };
 };
 

@@ -1,25 +1,26 @@
 /**
-=========================================================
-* Soft UI Dashboard React - v4.0.0
-=========================================================
+ =========================================================
+ * Soft UI Dashboard React - v4.0.0
+ =========================================================
 
-* Product Page: https://www.creative-tim.com/product/soft-ui-dashboard-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
+ * Product Page: https://www.creative-tim.com/product/soft-ui-dashboard-react
+ * Copyright 2022 Creative Tim (https://www.creative-tim.com)
 
-Coded by www.creative-tim.com
+ Coded by www.creative-tim.com
 
  =========================================================
 
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ */
 
 // @mui material components
 import { styled } from "@mui/material/styles";
 
 // Soft UI Dashboard React components
 import SoftButton from "components/SoftButton";
+import Pagination from "@mui/material/Pagination";
 
-export default styled(SoftButton)(({ theme, ownerState }) => {
+export default styled(Pagination)(({ theme, ownerState }) => {
   const { borders, functions, typography, palette } = theme;
   const { variant, paginationSize, active } = ownerState;
 
@@ -38,25 +39,28 @@ export default styled(SoftButton)(({ theme, ownerState }) => {
   }
 
   return {
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "center",
     borderColor,
-    margin: `0 ${pxToRem(2)}`,
+    margin: `20px ${pxToRem(2)}`,
     pointerEvents: active ? "none" : "auto",
     fontWeight: fontWeightRegular,
     fontSize: fontSize.sm,
-    width: sizeValue,
-    minWidth: sizeValue,
+    width: "100%",
+    minWidth: "100%",
     height: sizeValue,
     minHeight: sizeValue,
 
-    "&:hover, &:focus, &:active": {
-      transform: "none",
-      boxShadow: (variant !== "gradient" || variant !== "contained") && "none !important",
-      opacity: "1 !important",
-    },
-
-    "&:hover": {
-      backgroundColor: light.main,
-      borderColor,
-    },
+    // "&:hover, &:focus, &:active": {
+    //   transform: "none",
+    //   boxShadow: (variant !== "gradient" || variant !== "contained") && "none !important",
+    //   opacity: "1 !important",
+    // },
+    //
+    // "&:hover": {
+    //   backgroundColor: light.main,
+    //   borderColor,
+    // },
   };
 });

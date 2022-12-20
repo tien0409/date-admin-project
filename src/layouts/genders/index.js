@@ -13,6 +13,7 @@ import SoftButton from "../../components/SoftButton";
 import Icon from "@mui/material/Icon";
 import { Dialog } from "@mui/material";
 import SoftInput from "../../components/SoftInput";
+import SoftPagination from "../../components/SoftPagination";
 
 // Data
 
@@ -21,15 +22,17 @@ function Genders() {
     rows,
     columns,
     formData,
-    genderEdit,
     modalType,
     open,
-    setOpen,
     loading,
+    filter,
+    pagination,
     handleCloseModal,
     handleChangeForm,
     handleCreate,
     handleSubmit,
+    handleChangeSearch,
+    handleChangePage,
   } = useGenders();
 
   return (
@@ -38,6 +41,15 @@ function Genders() {
       <SoftBox py={3}>
         <SoftBox mb={3}>
           <SoftBox display="flex" justifyContent="flex-end">
+            <SoftBox flex={1} mr={1}>
+              <SoftInput
+                placeholder={"Search gender..."}
+                icon={{ component: "search", direction: "left" }}
+                value={filter.search}
+                onChange={handleChangeSearch}
+              />
+            </SoftBox>
+
             <SoftButton variant="gradient" color="dark" onClick={handleCreate}>
               <Icon sx={{ fontWeight: "bold" }}>add</Icon>
               &nbsp;add new Gender
@@ -58,6 +70,12 @@ function Genders() {
               <Table columns={columns} rows={rows} />
             </SoftBox>
           </Card>
+          <SoftPagination
+            item
+            count={pagination.totalPage}
+            page={filter.page}
+            onChange={handleChangePage}
+          />
         </SoftBox>
       </SoftBox>
 
