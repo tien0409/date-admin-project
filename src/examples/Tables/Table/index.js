@@ -1,17 +1,17 @@
 /**
-=========================================================
-* Soft UI Dashboard React - v4.0.0
-=========================================================
+ =========================================================
+ * Soft UI Dashboard React - v4.0.0
+ =========================================================
 
-* Product Page: https://www.creative-tim.com/product/soft-ui-dashboard-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
+ * Product Page: https://www.creative-tim.com/product/soft-ui-dashboard-react
+ * Copyright 2022 Creative Tim (https://www.creative-tim.com)
 
-Coded by www.creative-tim.com
+ Coded by www.creative-tim.com
 
  =========================================================
 
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ */
 
 import { useMemo } from "react";
 
@@ -37,97 +37,114 @@ import colors from "assets/theme/base/colors";
 import typography from "assets/theme/base/typography";
 import borders from "assets/theme/base/borders";
 
-function Table({ columns, rows }) {
+function Table({ columns, rows, pageSize = 10 }) {
   const { light } = colors;
   const { size, fontWeightBold } = typography;
   const { borderWidth } = borders;
 
-  const renderColumns = columns.map(({ name, align, width }, key) => {
-    let pl;
-    let pr;
+  const renderColumns = useMemo(
+    () =>
+      columns.map(({ name, align, width }, key) => {
+        let pl;
+        let pr;
 
-    if (key === 0) {
-      pl = 3;
-      pr = 3;
-    } else if (key === columns.length - 1) {
-      pl = 3;
-      pr = 3;
-    } else {
-      pl = 1;
-      pr = 1;
-    }
+        if (key === 0) {
+          pl = 3;
+          pr = 3;
+        } else if (key === columns.length - 1) {
+          pl = 3;
+          pr = 3;
+        } else {
+          pl = 1;
+          pr = 1;
+        }
 
-    return (
-      <SoftBox
-        key={name}
-        component="th"
-        width={width || "auto"}
-        pt={1.5}
-        pb={1.25}
-        pl={align === "left" ? pl : 3}
-        pr={align === "right" ? pr : 3}
-        textAlign={align}
-        fontSize={size.xxs}
-        fontWeight={fontWeightBold}
-        color="secondary"
-        opacity={0.7}
-        borderBottom={`${borderWidth[1]} solid ${light.main}`}
-      >
-        {name.toUpperCase()}
-      </SoftBox>
-    );
-  });
-
-  const renderRows = rows.map((row, key) => {
-    const rowKey = `row-${key}`;
-
-    const tableRow = columns.map(({ name, align }) => {
-      let template;
-
-      if (Array.isArray(row[name])) {
-        template = (
+        return (
           <SoftBox
-            key={uuidv4()}
-            component="td"
-            p={1}
-            borderBottom={row.hasBorder ? `${borderWidth[1]} solid ${light.main}` : null}
-          >
-            <SoftBox display="flex" alignItems="center" py={0.5} px={1}>
-              <SoftBox mr={2}>
-                <SoftAvatar src={row[name][0]} name={row[name][1]} variant="rounded" size="sm" />
-              </SoftBox>
-              <SoftTypography variant="button" fontWeight="medium" sx={{ width: "max-content" }}>
-                {row[name][1]}
-              </SoftTypography>
-            </SoftBox>
-          </SoftBox>
-        );
-      } else {
-        template = (
-          <SoftBox
-            key={uuidv4()}
-            component="td"
-            p={1}
+            key={name}
+            component="th"
+            width={width || "auto"}
+            pt={1.5}
+            pb={1.25}
+            pl={align === "left" ? pl : 3}
+            pr={align === "right" ? pr : 3}
             textAlign={align}
-            borderBottom={row.hasBorder ? `${borderWidth[1]} solid ${light.main}` : null}
+            fontSize={size.xxs}
+            fontWeight={fontWeightBold}
+            color="secondary"
+            opacity={0.7}
+            borderBottom={`${borderWidth[1]} solid ${light.main}`}
           >
-            <SoftTypography
-              variant="button"
-              fontWeight="regular"
-              color="secondary"
-              sx={{ display: "inline-block", width: "max-content" }}
-            >
-              {row[name]}
-            </SoftTypography>
+            {name.toUpperCase()}
           </SoftBox>
         );
-      }
+      }),
+    [borderWidth, columns, fontWeightBold, light.main, size.xxs],
+  );
 
-      return template;
-    });
+  const renderRows = useMemo(
+    () =>
+      rows.slice(0, pageSize).map((row, key) => {
+        const rowKey = `row-${key}`;
 
-    return <TableRow key={rowKey}>{tableRow}</TableRow>;
-  });
+        const tableRow = columns.map(({ name, align }) => {
+          let template;
+
+          if (Array.isArray(row[name])) {
+            template = (
+              <SoftBox
+                key={uuidv4()}
+                component="td"
+                p={1}
+                borderBottom={row.hasBorder ? `${borderWidth[1]} solid ${light.main}` : null}
+              >
+                <SoftBox display="flex" alignItems="center" py={0.5} px={1}>
+                  <SoftBox mr={2}>
+                    <SoftAvatar
+                      src={row[name][0]}
+                      name={row[name][1]}
+                      variant="rounded"
+                      size="sm"
+                    />
+                  </SoftBox>
+                  <SoftTypography
+                    variant="button"
+                    fontWeight="medium"
+                    sx={{ width: "max-content" }}
+                  >
+                    {row[name][1]}
+                  </SoftTypography>
+                </SoftBox>
+              </SoftBox>
+            );
+          } else {
+            template = (
+              <SoftBox
+                key={uuidv4()}
+                component="td"
+                p={1}
+                textAlign={align}
+                borderBottom={row.hasBorder ? `${borderWidth[1]} solid ${light.main}` : null}
+              >
+                <SoftTypography
+                  variant="button"
+                  fontWeight="regular"
+                  color="secondary"
+                  sx={{ display: "inline-block", width: "max-content" }}
+                >
+                  {row[name]}
+                </SoftTypography>
+              </SoftBox>
+            );
+          }
+
+          return template;
+        });
+
+        return <TableRow key={rowKey}>{tableRow}</TableRow>;
+      }),
+    [borderWidth, columns, light.main, pageSize, rows],
+  );
 
   return useMemo(
     () => (
@@ -140,7 +157,7 @@ function Table({ columns, rows }) {
         </MuiTable>
       </TableContainer>
     ),
-    [columns, rows]
+    [renderColumns, renderRows],
   );
 }
 

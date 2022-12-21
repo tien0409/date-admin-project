@@ -5,7 +5,8 @@
   },
   "extends": [
     "prettier",
-    "eslint-config-prettier"
+    "eslint-config-prettier",
+    "plugin:react-hooks/recommended"
   ],
   "parserOptions": {
     "ecmaFeatures": {

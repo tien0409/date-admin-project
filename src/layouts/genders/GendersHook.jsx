@@ -141,7 +141,7 @@ const useGenders = () => {
           );
           setGenderEdit(null);
         } else {
-          setRows((prevState) => [...prevState, newItem]);
+          setRows((prevState) => [newItem, ...prevState]);
         }
         resetFilter();
         setLoading(false);

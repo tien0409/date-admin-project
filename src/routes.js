@@ -57,9 +57,10 @@ import CreditCard from "examples/Icons/CreditCard";
 import Cube from "examples/Icons/Cube";
 import Users from "./layouts/users";
 import { IoMdTransgender } from "react-icons/io";
-import { GiRelationshipBounds } from "react-icons/gi";
+import { GiBurningPassion, GiRelationshipBounds } from "react-icons/gi";
 import Genders from "./layouts/genders";
 import RelationshipTypes from "./layouts/relationship-types";
+import Passions from "./layouts/passions";
 
 const routes = [
   {
@@ -95,10 +96,20 @@ const routes = [
   {
     type: "collapse",
     name: "Relationship type",
-    key: "relationship-type",
-    route: "/relationship-type",
+    key: "relationship-types",
+    route: "/relationship-types",
     icon: <GiRelationshipBounds size={15} />,
     component: <RelationshipTypes />,
+    noCollapse: true,
+    protected: true,
+  },
+  {
+    type: "collapse",
+    name: "Passions",
+    key: "passions",
+    route: "/passions",
+    icon: <GiBurningPassion size={15} />,
+    component: <Passions />,
     noCollapse: true,
     protected: true,
   },
