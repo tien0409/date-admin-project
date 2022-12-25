@@ -47,34 +47,39 @@ const useGenders = () => {
   });
   const [genderEdit, setGenderEdit] = useState(null);
 
-  const getGenders = useCallback(async (filterQuery = {}) => {
-    if (cancelTokenSearch.current) {
-      cancelTokenSearch.current.cancel("Operation canceled due to new request");
-    }
+  const getGenders = useCallback(
+    async (filterQuery = {}) => {
+      if (cancelTokenSearch.current) {
+        cancelTokenSearch.current.cancel("Operation canceled due to new request");
+      }
 
-    cancelTokenSearch.current = axios.CancelToken.source();
+      cancelTokenSearch.current = axios.CancelToken.source();
 
-    const { data: res } = await GenderApi.GetAll(filterQuery, cancelTokenSearch.current.token);
+      const { data: res } = await GenderApi.GetAll(filterQuery, cancelTokenSearch.current.token);
 
-    const data = res.data.genders.map((item) => ({
-      ...item,
-      "number of user": item?.userGenders,
-      action: <ActionCell item={item} onEdit={handleEdit} onDelete={handleDelete} />,
-    }));
+      const data = res.data.genders.map((item) => ({
+        ...item,
+        "number of user": item?.userGenders,
+        action: <ActionCell item={item} onEdit={handleEdit} onDelete={handleDelete} />,
+      }));
 
-    setRows(data);
-    setPagination(res.data.pagination);
-  }, []);
+      setRows(data);
+      setPagination(res.data.pagination);
+    },
+    [handleDelete],
+  );
 
   const handleCloseModal = () => {
-    setOpen(false);
-    setModalType(null);
-    setFormData({
-      id: null,
-      name: "",
-      icon: "",
-      description: "",
-    });
+    setTimeout(() => {
+      setOpen(false);
+      setModalType(null);
+      setFormData({
+        id: null,
+        name: "",
+        icon: "",
+        description: "",
+      });
+    }, 0);
   };
 
   const resetFilter = async () => {

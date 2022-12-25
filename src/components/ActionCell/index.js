@@ -5,7 +5,6 @@ import SoftTypography from "../SoftTypography";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import IconButton from "@mui/material/IconButton";
 import PropTypes from "prop-types";
-import SoftButton from "../SoftButton";
 
 const ActionCell = (props) => {
   const { item, onView, onEdit, onDelete } = props;
@@ -61,17 +60,20 @@ const ActionCell = (props) => {
             Edit
           </SoftTypography>
         </MenuItem>
-        <MenuItem onClick={() => onDelete(item)}>
-          <SoftTypography
-            component="a"
-            href="#"
-            variant="caption"
-            color="secondary"
-            fontWeight="medium"
-          >
-            Delete
-          </SoftTypography>
-        </MenuItem>
+        {!item?.hasOwnProperty("deletable") ||
+          (item?.hasOwnProperty("deletable") && item.deletable && (
+            <MenuItem onClick={() => onDelete(item)}>
+              <SoftTypography
+                component="a"
+                href="#"
+                variant="caption"
+                color="secondary"
+                fontWeight="medium"
+              >
+                Delete
+              </SoftTypography>
+            </MenuItem>
+          ))}
       </Menu>
     </div>
   );

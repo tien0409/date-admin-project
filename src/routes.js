@@ -57,10 +57,12 @@ import CreditCard from "examples/Icons/CreditCard";
 import Cube from "examples/Icons/Cube";
 import Users from "./layouts/users";
 import { IoMdTransgender } from "react-icons/io";
+import { TbPremiumRights } from "react-icons/tb";
 import { GiBurningPassion, GiRelationshipBounds } from "react-icons/gi";
 import Genders from "./layouts/genders";
 import RelationshipTypes from "./layouts/relationship-types";
 import Passions from "./layouts/passions";
+import PremiumPackages from "./layouts/premium-packages";
 
 const routes = [
   {
@@ -110,6 +112,16 @@ const routes = [
     route: "/passions",
     icon: <GiBurningPassion size={15} />,
     component: <Passions />,
+    noCollapse: true,
+    protected: true,
+  },
+  {
+    type: "collapse",
+    name: "Premium packages",
+    key: "premium-packages",
+    route: "/premium-packages",
+    icon: <TbPremiumRights size={15} />,
+    component: <PremiumPackages />,
     noCollapse: true,
     protected: true,
   },

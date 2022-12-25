@@ -8,30 +8,26 @@ import _pick from "lodash/pick";
 import _keys from "lodash/keys";
 import { useSearchParams } from "react-router-dom";
 import axios from "../../api";
-import PassionApi from "../../api/passion";
 import SoftBox from "../../components/SoftBox";
 import SoftTypography from "../../components/SoftTypography";
+import PremiumPackageApi from "../../api/premium-package";
 
 const initForm = {
-  name: "Passion",
-  bgColor: "#F8F9FF",
-  fgColor: "#525176",
-  borderColor: "#EAEAEB",
+  numberOfMonths: "",
+  price: "",
   description: "",
 };
 
-const usePassionsHook = () => {
+const usePremiumPackagesHook = () => {
   const columns = useMemo(
     () => [
       { name: "code", align: "center" },
-      { name: "name", align: "left" },
+      { name: "number of months", align: "center" },
       {
         name: "number of user",
         align: "center",
       },
-      { name: "background color", align: "center" },
-      { name: "foreground color", align: "center" },
-      { name: "border color", align: "center" },
+      { name: "price", align: "center" },
       { name: "description", align: "left" },
       { name: "action", align: "center" },
     ],
@@ -59,7 +55,7 @@ const usePassionsHook = () => {
     totalPage: 1,
   });
   const [formData, setFormData] = useState(initForm);
-  const [passionEdit, setPassionEdit] = useState(null);
+  const [premiumPackageEdit, setPremiumPackageEdit] = useState(null);
 
   const resetFilter = useCallback(async () => {
     setFilter({ search: "", page: 1 });
@@ -70,7 +66,7 @@ const usePassionsHook = () => {
   const handleDelete = useCallback(
     (item) => {
       confirm({ description: "This action cannot be undone" }).then(async () => {
-        await toast.promise(PassionApi.Delete(item.id), {
+        await toast.promise(PremiumPackageApi.Delete(item.id), {
           loading: "Deleting...",
           success: () => {
             setRows((prevState) => prevState.filter((row) => row.id !== item.id));
@@ -91,7 +87,7 @@ const usePassionsHook = () => {
   const handleEdit = useCallback(
     (item) => {
       setModalType("edit");
-      setPassionEdit(item);
+      setPremiumPackageEdit(item);
       setOpen(true);
       setFormData(_pick(item, _keys(formData)));
     },
@@ -102,58 +98,24 @@ const usePassionsHook = () => {
     (item) => {
       return {
         ...item,
+        "number of months": (
+          <SoftBox>
+            <SoftTypography variant="caption" color="secondary">
+              {new Intl.NumberFormat("de-DE").format(item?.numberOfMonths)}
+            </SoftTypography>
+          </SoftBox>
+        ),
+        price: (
+          <SoftBox>
+            <SoftTypography variant="caption" color="secondary">
+              {new Intl.NumberFormat("de-DE").format(item?.price)}
+            </SoftTypography>
+          </SoftBox>
+        ),
         "number of user": (
           <SoftBox>
             <SoftTypography variant="caption" color="secondary">
               {item?.userGenders}
-            </SoftTypography>
-          </SoftBox>
-        ),
-        "background color": (
-          <SoftBox display={"flex"} alignItems={"center"} gap={1}>
-            <SoftBox
-              width={20}
-              heigh={20}
-              bgColor={item?.bgColor}
-              boxShadow={"0 0 0 1px rgba(0,0,0,0.2)"}
-            >
-              &nbsp;
-            </SoftBox>
-
-            <SoftTypography style={{ width: "55px" }} variant="caption" color="secondary">
-              {item?.bgColor}
-            </SoftTypography>
-          </SoftBox>
-        ),
-        "foreground color": (
-          <SoftBox display={"flex"} alignItems={"center"} gap={1}>
-            <SoftBox
-              width={20}
-              heigh={20}
-              bgColor={item?.fgColor}
-              boxShadow={"0 0 0 1px rgba(0,0,0,0.2)"}
-            >
-              &nbsp;
-            </SoftBox>
-
-            <SoftTypography style={{ width: "55px" }} variant="caption" color="secondary">
-              {item?.fgColor}
-            </SoftTypography>
-          </SoftBox>
-        ),
-        "border color": (
-          <SoftBox display={"flex"} alignItems={"center"} gap={1}>
-            <SoftBox
-              width={20}
-              heigh={20}
-              bgColor={item?.borderColor}
-              boxShadow={"0 0 0 1px rgba(0,0,0,0.2)"}
-            >
-              &nbsp;
-            </SoftBox>
-
-            <SoftTypography style={{ width: "55px" }} variant="caption" color="secondary">
-              {item?.borderColor}
             </SoftTypography>
           </SoftBox>
         ),
@@ -163,7 +125,7 @@ const usePassionsHook = () => {
     [handleDelete, handleEdit],
   );
 
-  const getPassions = useCallback(async () => {
+  const getPremiumPackages = useCallback(async () => {
     try {
       if (cancelTokenSearch.current) {
         cancelTokenSearch.current.cancel("Operation canceled due to new request");
@@ -171,9 +133,9 @@ const usePassionsHook = () => {
 
       cancelTokenSearch.current = axios.CancelToken.source();
 
-      const { data: res } = await PassionApi.GetAll(filter, cancelTokenSearch.current.token);
+      const { data: res } = await PremiumPackageApi.GetAll(filter, cancelTokenSearch.current.token);
 
-      const data = res.data.passions.map((item) => convertToRow(item));
+      const data = res.data.premiumPackages.map((item) => convertToRow(item));
 
       setRows(data);
       setPagination(res.data.pagination);
@@ -198,17 +160,15 @@ const usePassionsHook = () => {
   };
 
   const handleChangeForm = (e) => {
-    if (e.target.name === "isDefault") {
-      setFormData((prevState) => ({
-        ...prevState,
-        [e.target.name]: e.target.checked,
-      }));
-    } else {
-      setFormData({
-        ...formData,
-        [e.target.name]: e.target.value,
-      });
+    let value = e.target.value;
+    if (e.target.name === "numberOfMonths" || e.target.name === "price") {
+      value = +value.replace(/[^0-9.\-+,]/g, "");
     }
+
+    setFormData({
+      ...formData,
+      [e.target.name]: value,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -216,25 +176,24 @@ const usePassionsHook = () => {
     e.preventDefault();
     const api =
       modalType === "edit"
-        ? PassionApi.Update(passionEdit.id, formData)
-        : PassionApi.Create(formData);
+        ? PremiumPackageApi.Update(premiumPackageEdit.id, formData)
+        : PremiumPackageApi.Create(formData);
 
     await toast.promise(api, {
       loading: modalType === "edit" ? "Updating..." : "Creating...",
       success: ({ data: res }) => {
         const newItem = convertToRow(res.data);
 
-        if (passionEdit) {
+        if (premiumPackageEdit) {
           setRows((prevState) =>
             prevState.map((item) => (item.id === res.data.id ? newItem : item)),
           );
-          setPassionEdit(null);
+          setPremiumPackageEdit(null);
         } else {
           setRows((prevState) => [newItem, ...prevState]);
         }
         resetFilter();
         setLoading(false);
-        setFormData(initForm);
         handleCloseModal();
         return modalType === "edit" ? "Update success" : "Create success";
       },
@@ -274,16 +233,15 @@ const usePassionsHook = () => {
   useEffect(() => {
     if (getData) {
       (async () => {
-        await getPassions();
+        await getPremiumPackages();
         setGetData(false);
       })();
     }
-  }, [getData, getPassions]);
+  }, [getData, getPremiumPackages]);
 
   return {
     open,
     rows,
-    passionEdit,
     modalType,
     columns,
     setOpen,
@@ -300,4 +258,4 @@ const usePassionsHook = () => {
   };
 };
 
-export default usePassionsHook;
+export default usePremiumPackagesHook;
