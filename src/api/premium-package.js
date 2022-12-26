@@ -14,6 +14,10 @@ class PremiumPackageApi {
     return axios.put(`${API_SERVER}/premium-packages/${id}`, data);
   };
 
+  static UpdateStatus = (id, data) => {
+    return axios.put(`${API_SERVER}/premium-packages/status/${id}`, data);
+  };
+
   static Delete = (id) => {
     return axios.delete(`${API_SERVER}/premium-packages/${id}`);
   };

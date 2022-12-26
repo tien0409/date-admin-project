@@ -47,6 +47,24 @@ const useGenders = () => {
   });
   const [genderEdit, setGenderEdit] = useState(null);
 
+  const handleDelete = useCallback((item) => {
+    confirm({ description: "This action cannot be undone" }).then(async () => {
+      await toast.promise(GenderApi.Delete(item.id), {
+        loading: "Deleting...",
+        success: () => {
+          setRows((prevState) => prevState.filter((row) => row.id !== item.id));
+          resetFilter();
+          return "Delete success";
+        },
+        error: (error) => {
+          if (Array.isArray(error?.response?.data?.message))
+            return error?.response?.data?.message[0];
+          else return error?.response?.data?.message;
+        },
+      });
+    });
+  }, []);
+
   const getGenders = useCallback(
     async (filterQuery = {}) => {
       if (cancelTokenSearch.current) {
@@ -86,24 +104,6 @@ const useGenders = () => {
     setFilter({ search: "", page: 1 });
     setSearchParams({});
     await getGenders();
-  };
-
-  const handleDelete = (item) => {
-    confirm({ description: "This action cannot be undone" }).then(async () => {
-      await toast.promise(GenderApi.Delete(item.id), {
-        loading: "Deleting...",
-        success: () => {
-          setRows((prevState) => prevState.filter((row) => row.id !== item.id));
-          resetFilter();
-          return "Delete success";
-        },
-        error: (error) => {
-          if (Array.isArray(error?.response?.data?.message))
-            return error?.response?.data?.message[0];
-          else return error?.response?.data?.message;
-        },
-      });
-    });
   };
 
   const handleEdit = (item) => {

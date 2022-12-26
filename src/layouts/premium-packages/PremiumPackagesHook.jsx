@@ -11,6 +11,7 @@ import axios from "../../api";
 import SoftBox from "../../components/SoftBox";
 import SoftTypography from "../../components/SoftTypography";
 import PremiumPackageApi from "../../api/premium-package";
+import SoftBadge from "../../components/SoftBadge";
 
 const initForm = {
   numberOfMonths: "",
@@ -29,6 +30,7 @@ const usePremiumPackagesHook = () => {
       },
       { name: "price", align: "center" },
       { name: "description", align: "left" },
+      { name: "active", align: "center" },
       { name: "action", align: "center" },
     ],
     [],
@@ -94,6 +96,27 @@ const usePremiumPackagesHook = () => {
     [formData],
   );
 
+  const handleActive = useCallback(
+    async (item) => {
+      await toast.promise(PremiumPackageApi.UpdateStatus(item.id, { active: !item?.active }), {
+        loading: "Updating...",
+        success: () => {
+          setRows((prevState) =>
+            prevState.map((row) => (row.id === item.id ? { ...row, active: !row.active } : row)),
+          );
+          resetFilter();
+          return "Update success";
+        },
+        error: (error) => {
+          if (Array.isArray(error?.response?.data?.message))
+            return error?.response?.data?.message[0];
+          else return error?.response?.data?.message;
+        },
+      });
+    },
+    [resetFilter],
+  );
+
   const convertToRow = useCallback(
     (item) => {
       return {
@@ -119,10 +142,20 @@ const usePremiumPackagesHook = () => {
             </SoftTypography>
           </SoftBox>
         ),
-        action: <ActionCell item={item} onEdit={handleEdit} onDelete={handleDelete} />,
+        active: item?.active && (
+          <SoftBadge variant="gradient" badgeContent="Active" color="success" size="xs" container />
+        ),
+        action: (
+          <ActionCell
+            item={item}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            menuItems={[{ label: item?.active ? "Inactive" : "Active", onAction: handleActive }]}
+          />
+        ),
       };
     },
-    [handleDelete, handleEdit],
+    [handleActive, handleDelete, handleEdit],
   );
 
   const getPremiumPackages = useCallback(async () => {

@@ -7,7 +7,7 @@ import IconButton from "@mui/material/IconButton";
 import PropTypes from "prop-types";
 
 const ActionCell = (props) => {
-  const { item, onView, onEdit, onDelete } = props;
+  const { item, menuItems, onView, onEdit, onDelete } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -60,6 +60,21 @@ const ActionCell = (props) => {
             Edit
           </SoftTypography>
         </MenuItem>
+
+        {menuItems?.map((menuItem) => (
+          <MenuItem onClick={() => menuItem.onAction(item)}>
+            <SoftTypography
+              component="a"
+              href="#"
+              variant="caption"
+              color="secondary"
+              fontWeight="medium"
+            >
+              {menuItem.label}
+            </SoftTypography>
+          </MenuItem>
+        ))}
+
         {!item?.hasOwnProperty("deletable") ||
           (item?.hasOwnProperty("deletable") && item.deletable && (
             <MenuItem onClick={() => onDelete(item)}>
