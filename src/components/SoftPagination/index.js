@@ -29,6 +29,7 @@ const Context = createContext(null);
 
 const SoftPagination = forwardRef(
   ({ item, variant, color, size, active, children, ...rest }, ref) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const context = item ? useContext(Context) : null;
     const paginationSize = context ? context.size : null;
     const value = useMemo(() => ({ variant, color, size }), [variant, color, size]);

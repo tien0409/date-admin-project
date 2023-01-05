@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { RotatingLines } from "react-loader-spinner";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -17,15 +17,14 @@ import curved9 from "assets/images/curved-images/curved-6.jpg";
 
 import AuthApi from "../../../api/auth";
 import { useAuth } from "../../../auth-context/auth.context";
-import { API_SERVER } from "config/constant";
 
 function SignIn() {
   const navigate = useNavigate();
 
   const [rememberMe, setRememberMe] = useState(true);
   const [formData, setFormData] = useState({
-    'email': '',
-    'password': ''
+    email: "",
+    password: "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -46,11 +45,9 @@ function SignIn() {
     e.preventDefault();
     AuthApi.Login(formData)
       .then((response) => {
-        if (response.data.success) {
-          return setProfile(response);
-        } else {
-          setError(response.data.msg);
-        }
+          AuthApi.Auth().then((res) => {
+            return setProfile(res.data.data);
+          });
       })
       .catch((error) => {
         if (error.response) {
@@ -64,12 +61,9 @@ function SignIn() {
     return navigate("/dashboard");
   };
 
-  const setProfile = (response) => {
-    let user = { ...response.data.user };
-    user.token = response.data.token;
-    user = JSON.stringify(user);
-    setUser(user);
-    localStorage.setItem("user", user);
+  const setProfile = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
     return navigate("/dashboard");
   };
 
@@ -102,7 +96,7 @@ function SignIn() {
         })
         .finally(() => setIsLoading(false));
     }
-  }, []);
+  }, [handleRedirect, setUser]);
 
   return (
     <CoverLayout
@@ -142,7 +136,13 @@ function SignIn() {
                   Email
                 </SoftTypography>
               </SoftBox>
-              <SoftInput type="email" name="email" value={formData?.email} onChange={handleFormData} placeholder="Email" />
+              <SoftInput
+                type="email"
+                name="email"
+                value={formData?.email}
+                onChange={handleFormData}
+                placeholder="Email"
+              />
             </SoftBox>
             <SoftBox mb={2}>
               <SoftBox mb={1} ml={0.5}>

@@ -107,11 +107,7 @@ function Table({ columns, rows, pageSize = 10 }) {
                       size="sm"
                     />
                   </SoftBox>
-                  <SoftTypography
-                    variant="button"
-                    fontWeight="medium"
-                    sx={{ width: "max-content" }}
-                  >
+                  <SoftTypography variant="button" fontWeight="medium">
                     {row[name][1]}
                   </SoftTypography>
                 </SoftBox>

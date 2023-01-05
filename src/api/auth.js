@@ -1,21 +1,25 @@
-import axios from "./index";
 import {API_SERVER} from "config/constant";
+import axiosInstance from "../config/axios";
 
 class AuthApi {
     static Login = (data) => {
-        return axios.post(`${API_SERVER}users/login`, data);
+        return axiosInstance.post(`${API_SERVER}/auth/signin`, data);
+    };
+
+    static Auth = () => {
+        return axiosInstance.get(`${API_SERVER}/auth/user-auth`);
     };
 
     static Register = (data) => {
-        return axios.post(`${API_SERVER}users/register`, data);
+        return axiosInstance.post(`${API_SERVER}users/register`, data);
     };
 
     static Authorize = (code) => {
-        return axios.get(`${API_SERVER}sessions/oauth/github?code=${code}`);
+        return axiosInstance.get(`${API_SERVER}sessions/oauth/github?code=${code}`);
     };
 
     static Logout = (data) => {
-        return axios.post(`${API_SERVER}users/logout`, data, {
+        return axiosInstance.post(`${API_SERVER}users/logout`, data, {
             headers: {Authorization: `${data.token}`},
         });
     };

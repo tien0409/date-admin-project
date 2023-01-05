@@ -1,21 +1,21 @@
-import axios from "./index";
 import { API_SERVER } from "config/constant";
+import axiosInstance from "../config/axios";
 
 class GenderApi {
   static GetAll = (params = {}, cancelToken) => {
-    return axios.get(`${API_SERVER}/genders`, { params, cancelToken });
+    return axiosInstance.get(`${API_SERVER}/genders`, { params, cancelToken });
   };
 
   static Create = (data) => {
-    return axios.post(`${API_SERVER}/genders/create`, data);
+    return axiosInstance.post(`${API_SERVER}/genders/create`, data);
   };
 
   static Update = (id, data) => {
-    return axios.put(`${API_SERVER}/genders/${id}`, data);
+    return axiosInstance.put(`${API_SERVER}/genders/${id}`, data);
   };
 
   static Delete = (id) => {
-    return axios.delete(`${API_SERVER}/genders/${id}`);
+    return axiosInstance.delete(`${API_SERVER}/genders/${id}`);
   };
 }
 

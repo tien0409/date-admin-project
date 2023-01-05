@@ -1,21 +1,22 @@
 import axios from "./index";
 import { API_SERVER } from "config/constant";
+import axiosInstance from "../config/axios";
 
 class PassionApi {
   static GetAll = (params = {}, cancelToken) => {
-    return axios.get(`${API_SERVER}/passions`, { params, cancelToken });
+    return axiosInstance.get(`${API_SERVER}/passions`, { params, cancelToken });
   };
 
   static Create = (data) => {
-    return axios.post(`${API_SERVER}/passions`, data);
+    return axiosInstance.post(`${API_SERVER}/passions`, data);
   };
 
   static Update = (id, data) => {
-    return axios.put(`${API_SERVER}/passions/${id}`, data);
+    return axiosInstance.put(`${API_SERVER}/passions/${id}`, data);
   };
 
   static Delete = (id) => {
-    return axios.delete(`${API_SERVER}/passions/${id}`);
+    return axiosInstance.delete(`${API_SERVER}/passions/${id}`);
   };
 }
 

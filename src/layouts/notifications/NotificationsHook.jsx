@@ -8,31 +8,27 @@ import _pick from "lodash/pick";
 import _keys from "lodash/keys";
 import { useSearchParams } from "react-router-dom";
 import axios from "../../api";
-import PassionApi from "../../api/passion";
+import NotificationApi from "../../api/notification";
+import SoftBadge from "../../components/SoftBadge";
 import SoftBox from "../../components/SoftBox";
 import SoftTypography from "../../components/SoftTypography";
 
 const initForm = {
-  name: "Passion",
-  bgColor: "#F8F9FF",
-  fgColor: "#525176",
-  borderColor: "#EAEAEB",
-  description: "",
+  title: "",
+  message: "",
 };
 
-const usePassionsHook = () => {
+const useNotifications = () => {
   const columns = useMemo(
     () => [
       { name: "code", align: "center" },
-      { name: "name", align: "left" },
+      { name: "title", align: "left" },
       {
-        name: "number of user",
-        align: "center",
+        name: "message",
+        align: "left",
       },
-      { name: "background color", align: "center" },
-      { name: "foreground color", align: "center" },
-      { name: "border color", align: "center" },
-      { name: "description", align: "left" },
+      { name: "receiver", align: "left" },
+      { name: "status", align: "center" },
       { name: "action", align: "center" },
     ],
     [],
@@ -59,7 +55,7 @@ const usePassionsHook = () => {
     totalPage: 1,
   });
   const [formData, setFormData] = useState(initForm);
-  const [passionEdit, setPassionEdit] = useState(null);
+  const [notificationEdit, setNotificationEdit] = useState(null);
 
   const resetFilter = useCallback(async () => {
     setFilter({ search: "", page: 1 });
@@ -70,7 +66,7 @@ const usePassionsHook = () => {
   const handleDelete = useCallback(
     (item) => {
       confirm({ description: "This action cannot be undone" }).then(async () => {
-        await toast.promise(PassionApi.Delete(item.id), {
+        await toast.promise(NotificationApi.Delete(item.id), {
           loading: "Deleting...",
           success: () => {
             setRows((prevState) => prevState.filter((row) => row.id !== item.id));
@@ -91,79 +87,88 @@ const usePassionsHook = () => {
   const handleEdit = useCallback(
     (item) => {
       setModalType("edit");
-      setPassionEdit(item);
+      setNotificationEdit(item);
       setOpen(true);
       setFormData(_pick(item, _keys(formData)));
     },
     [formData],
   );
 
-  const convertToRow = useCallback(
-    (item) => {
-      return {
-        ...item,
-        "number of user": (
-          <SoftBox>
-            <SoftTypography variant="caption" color="secondary">
-              {item?.userGenders}
-            </SoftTypography>
-          </SoftBox>
-        ),
-        "background color": (
-          <SoftBox display={"flex"} alignItems={"center"} gap={1}>
-            <SoftBox
-              width={20}
-              heigh={20}
-              bgColor={item?.bgColor}
-              boxShadow={"0 0 0 1px rgba(0,0,0,0.2)"}
-            >
-              &nbsp;
-            </SoftBox>
+  const handleActive = useCallback(
+    async (item) => {
+      const api =
+        item.status === "active"
+          ? NotificationApi.UpdateInActiveStatus
+          : NotificationApi.UpdateActiveStatus;
 
-            <SoftTypography style={{ width: "55px" }} variant="caption" color="secondary">
-              {item?.bgColor}
-            </SoftTypography>
-          </SoftBox>
-        ),
-        "foreground color": (
-          <SoftBox display={"flex"} alignItems={"center"} gap={1}>
-            <SoftBox
-              width={20}
-              heigh={20}
-              bgColor={item?.fgColor}
-              boxShadow={"0 0 0 1px rgba(0,0,0,0.2)"}
-            >
-              &nbsp;
-            </SoftBox>
-
-            <SoftTypography style={{ width: "55px" }} variant="caption" color="secondary">
-              {item?.fgColor}
-            </SoftTypography>
-          </SoftBox>
-        ),
-        "border color": (
-          <SoftBox display={"flex"} alignItems={"center"} gap={1}>
-            <SoftBox
-              width={20}
-              heigh={20}
-              bgColor={item?.borderColor}
-              boxShadow={"0 0 0 1px rgba(0,0,0,0.2)"}
-            >
-              &nbsp;
-            </SoftBox>
-
-            <SoftTypography style={{ width: "55px" }} variant="caption" color="secondary">
-              {item?.borderColor}
-            </SoftTypography>
-          </SoftBox>
-        ),
-        action: <ActionCell item={item} onEdit={handleEdit} onDelete={handleDelete} />,
-      };
+      await toast.promise(api(item.id), {
+        loading: "Updating...",
+        success: () => {
+          setRows((prevState) =>
+            prevState.map((row) => (row.id === item.id ? { ...row, active: !row.active } : row)),
+          );
+          resetFilter();
+          return "Update success";
+        },
+        error: (error) => {
+          if (Array.isArray(error?.response?.data?.message))
+            return error?.response?.data?.message[0];
+          else return error?.response?.data?.message;
+        },
+      });
     },
-    [handleDelete, handleEdit],
+    [resetFilter],
   );
 
-  const getPassions = useCallback(async () => {
+  const convertToRow = useCallback(
+    (item) => {
+      const _content =
+        item.message?.length > 100 ? item.message?.slice(0, 100) + "..." : item.message;
+      const _title = item.title?.length > 30 ? item.title?.slice(0, 30) + "..." : item.title;
+
+      return {
+        ...item,
+        title: (
+          <SoftBox>
+            <SoftTypography variant="caption" color="secondary">
+              {_title}
+            </SoftTypography>
+          </SoftBox>
+        ),
+        message: (
+          <SoftBox>
+            <SoftTypography
+              variant="caption"
+              color="secondary"
+              dangerouslySetInnerHTML={{ __html: _content }}
+            ></SoftTypography>
+          </SoftBox>
+        ),
+        status: item?.status && (
+          <SoftBadge
+            variant="gradient"
+            badgeContent={item?.status}
+            color={item?.status === "active" ? "success" : "error"}
+            size="xs"
+            container
+          />
+        ),
+        action: (
+          <ActionCell
+            item={item}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            menuItems={[
+              { label: item?.status === "active" ? "Inactive" : "Active", onAction: handleActive },
+            ]}
+          />
+        ),
+      };
+    },
+    [handleActive, handleDelete, handleEdit],
+  );
+
+  const getNotifications = useCallback(async () => {
     try {
       if (cancelTokenSearch.current) {
         cancelTokenSearch.current.cancel("Operation canceled due to new request");
@@ -171,16 +176,16 @@ const usePassionsHook = () => {
 
       cancelTokenSearch.current = axios.CancelToken.source();
 
-      const { data: res } = await PassionApi.GetAll(filter, cancelTokenSearch.current.token);
+      const { data: res } = await NotificationApi.GetAll(filter, cancelTokenSearch.current.token);
 
-      const data = res.data.passions.map((item) => convertToRow(item));
+      const data = res.data.notifications.map((item) => convertToRow(item));
 
       setRows(data);
       setPagination(res.data.pagination);
     } catch (error) {
       if (Array.isArray(error?.response?.data?.message))
         toast.error(error?.response?.data?.message[0]);
-      else toast.error(error?.response?.data?.message);
+      else if (error?.response?.data?.message) toast.error(error?.response?.data?.message);
     }
   }, [convertToRow, filter]);
 
@@ -198,17 +203,11 @@ const usePassionsHook = () => {
   };
 
   const handleChangeForm = (e) => {
-    if (e.target.name === "isDefault") {
-      setFormData((prevState) => ({
-        ...prevState,
-        [e.target.name]: e.target.checked,
-      }));
-    } else {
-      setFormData({
-        ...formData,
-        [e.target.name]: e.target.value,
-      });
-    }
+    let value = e.target.value;
+    setFormData({
+      ...formData,
+      [e.target.name]: value,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -216,25 +215,24 @@ const usePassionsHook = () => {
     e.preventDefault();
     const api =
       modalType === "edit"
-        ? PassionApi.Update(passionEdit.id, formData)
-        : PassionApi.Create(formData);
+        ? NotificationApi.Update(notificationEdit.id, formData)
+        : NotificationApi.Create(formData);
 
     await toast.promise(api, {
       loading: modalType === "edit" ? "Updating..." : "Creating...",
       success: ({ data: res }) => {
         const newItem = convertToRow(res.data);
 
-        if (passionEdit) {
+        if (notificationEdit) {
           setRows((prevState) =>
             prevState.map((item) => (item.id === res.data.id ? newItem : item)),
           );
-          setPassionEdit(null);
+          setNotificationEdit(null);
         } else {
           setRows((prevState) => [newItem, ...prevState]);
         }
         resetFilter();
         setLoading(false);
-        setFormData(initForm);
         handleCloseModal();
         return modalType === "edit" ? "Update success" : "Create success";
       },
@@ -273,16 +271,15 @@ const usePassionsHook = () => {
   useEffect(() => {
     if (getData) {
       (async () => {
-        await getPassions();
+        await getNotifications();
         setGetData(false);
       })();
     }
-  }, [getData, getPassions]);
+  }, [getData, getNotifications]);
 
   return {
     open,
     rows,
-    passionEdit,
     modalType,
     columns,
     setOpen,
@@ -299,4 +296,4 @@ const usePassionsHook = () => {
   };
 };
 
-export default usePassionsHook;
+export default useNotifications;
